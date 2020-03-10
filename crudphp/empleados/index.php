@@ -1,69 +1,5 @@
 <?php 
-$txtID=(isset($_POST['txtID']))?$_POST['txtID']:"";
-$txtNombre=(isset($_POST['txtNombre']))?$_POST['txtNombre']:"";
-$txtApellido=(isset($_POST['txtApellido']))?$_POST['txtApellido']:"";
-$txtCorreo=(isset($_POST['txtCorreo']))?$_POST['txtCorreo']:"";
-$txtTelefono=(isset($_POST['txtTelefono']))?$_POST['txtTelefono']:"";
-$txtTurno=(isset($_POST['txtTurno']))?$_POST['txtTurno']:"";
-
-$accion=(isset($_POST['accion']))?$_POST['accion']:"";
-
-include ("../conexion/conexion.php");
-
-switch ($accion) {
-	case 'btnAgregar':
-
-		$sentencia=$pdo->prepare("INSERT INTO empleados(nombre,apellido,correo,telefono,turno) VALUES (:nombre,:apellido,:correo,:telefono,:turno)");
-
-		$sentencia->bindParam(':nombre',$txtNombre);
-		$sentencia->bindParam(':apellido',$txtApellido);
-		$sentencia->bindParam(':correo',$txtCorreo);
-		$sentencia->bindParam(':telefono',$txtTelefono);
-		$sentencia->bindParam(':turno',$txtTurno);
-		$sentencia->execute();
-
-		echo "Presionaste btnAgregar";
-		break;
-
-	case 'btnModificar':
-
-		$sentencia=$pdo->prepare("UPDATE empleados SET nombre=:nombre,apellido=:apellido,correo=:correo,telefono=:telefono,turno=:turno WHERE id_empleado=:id_empleado");
-
-
-		$sentencia->bindParam(':nombre',$txtNombre);
-		$sentencia->bindParam(':apellido',$txtApellido);
-		$sentencia->bindParam(':correo',$txtCorreo);
-		$sentencia->bindParam(':telefono',$txtTelefono);
-		$sentencia->bindParam(':turno',$txtTurno);
-		$sentencia->bindParam(':id_empleado',$txtID);
-		$sentencia->execute();
-
-		header('Location: index.php');
-		echo "Presionaste btnModificar";
-		break;
-
-	case 'btnEliminar':
-		$sentencia=$pdo->prepare("DELETE FROM empleados WHERE id_empleado=:id_empleado");
-
-		$sentencia->bindParam(':id_empleado',$txtID);
-		$sentencia->execute();
-
-		header('Location: index.php');
-
-		echo "Presionaste btnEliminar";
-		break;
-
-	case 'btnCancelar':
-		echo $txtID;
-		echo "Presionaste btnCancelar";
-		break;
-}
-
-		$sentencia = $pdo->prepare("SELECT * FROM `empleados` WHERE 1");
-		$sentencia->execute();
-		$listaEmpleados=$sentencia->fetchAll(PDO::FETCH_ASSOC);
-
-		#print_r($listaEmpleados);
+ require 'empleados.php';
  ?>
 <!DOCTYPE html>
 <html>
@@ -77,7 +13,7 @@ switch ($accion) {
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 </head>
 <body>
-<div class="container-fluid">
+<div class="container">
 	<form action="" method="post">
 		
 		<!-- Modal -->
@@ -94,13 +30,19 @@ switch ($accion) {
 		        <div class="form-row">
 		        	<input type="hidden" required name="txtID" value="<?php echo $txtID; ?>" placeholder="" id="txt1" require="">
 				<div class="form-group col-md-6">
-				<label for="">Nombre:</label>
-				<input type="text" class="form-control" required name="txtNombre" value="<?php echo $txtNombre; ?>" placeholder="" id="txt2" require="">
+				<label for="">Nombre:</label>                  
+				<input type="text" class="form-control <?php echo ( isset($error['nombre']))?"is-invalid":"";?>" required name="txtNombre" value="<?php echo $txtNombre; ?>" placeholder="" id="txt2" require="">
+				<div class="invalid-feedback">
+					<?php echo ( isset($error['nombre']))?$error['nombre']:"";?>
+				</div>
 				<br>
 				</div>
 				<div class="form-group col-md-6">
 				<label for="">Apellido:</label>
-				<input type="text" class="form-control" required name="txtApellido" value="<?php echo $txtApellido; ?>" placeholder="" id="txt3" require="">
+				<input type="text" class="form-control <?php echo ( isset($error['apellido']))?"is-invalid":"";?>" required name="txtApellido" value="<?php echo $txtApellido; ?>" placeholder="" id="txt3" require="">
+				<div class="invalid-feedback">
+					<?php echo ( isset($error['apellido']))?$error['apellido']:"";?>
+				</div>
 				<br>
 				</div>
 				<div class="form-group col-md-12">
@@ -121,26 +63,29 @@ switch ($accion) {
 		        </div>
 		      </div>
 		      <div class="modal-footer">
-		      	<button value="btnAgregar" class="btn btn-success" type="submit" name="accion">Agregar</button>
-				<button value="btnModificar" class="btn btn-warning" type="submit" name="accion">Modificar</button>
-				<button value="btnEliminar" class="btn btn-danger" type="submit"  name="accion">Eliminar</button>
-				<button value="btnCancelar" class="btn btn-primary" type="submit" name="accion">Cancelar</button>
+		      	<button value="btnAgregar" <?php echo $accionAgregar; ?> class="btn btn-success" type="submit" name="accion">Agregar</button>
+				<button value="btnModificar" <?php echo $accionModificar; ?> class="btn btn-warning" type="submit" name="accion">Modificar</button>
+				<button value="btnEliminar" onclick="return Confirmar('¿Realmente deseas eliminar este usuario?');" <?php echo $accionEliminar; ?> class="btn btn-danger" type="submit"  name="accion">Eliminar</button>
+				<button value="btnCancelar" <?php echo $accionCancelar; ?> class="btn btn-primary" type="" name="accion">Cancelar</button>
 		      </div>
 		    </div>
 		  </div>
 		</div>
 
 		<!-- Button trigger modal -->
+		<br>
+		<br>
 		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
 		  Agregar registro
 		</button>
-
+		<br>
+		<br>	
 
 	</form>
 
 	<div class="row">
-		<table class="table">
-			<thead>
+		<table class="table table-bordered table-hover">
+			<thead class="thead-dark">
 				<tr>
 					<th>Nombre Completo</th>
 					<th>Correo</th>
@@ -164,8 +109,8 @@ switch ($accion) {
 							<input type="hidden" name="txtTelefono" value="<?php echo $empleado['telefono']; ?>">
 							<input type="hidden" name="txtTurno" value="<?php echo $empleado['turno']; ?>">
 
-							<input type="submit" value="Seleccionar" name="accion">
-							<button value="btnEliminar" type="submit" name="accion">Eliminar</button>
+							<input class="btn btn-primary" type="submit" value="Seleccionar" name="accion">
+							<button class="btn btn-danger" onclick="return Confirmar('¿Realmente deseas eliminar este usuario?');" value="btnEliminar" type="submit" name="accion">Eliminar</button>
 						</form>
 						
 					</td>
@@ -173,6 +118,17 @@ switch ($accion) {
 			<?php	}  ?>
 		</table>
 	</div>
+	<?php if ($mostrarModal) {?>
+		<script type="text/javascript">
+			$('#exampleModal').modal('show');
+		</script>
+	<?php } ?>
+	<script type="text/javascript">
+		function Confirmar(Mensaje){
+			return(confirm(Mensaje))?true:false;
+		}
+
+	</script>
 </div>
 </body>
 </html>
